@@ -44,39 +44,29 @@ pub fn decode_jwt(token: &str) -> Result<()> {
         return Err(DecodeError::MissingPayload)
     }
 
-    match STANDARD_NO_PAD.decode(parts[1]) {
-        Ok(bytes) => {
-            match String::from_utf8(bytes) {
-                Ok(text) => decode_payload_text(&text),
-                Err(err) => {
-                    Err(DecodeError::InvalidUnicodeEncoding(err)) 
-                } 
-            }
-        },
-        Err(err) => {
-            Err(DecodeError::InvalidBase64Encoding(err))
-        }
-    }
+    let bytes = STANDARD_NO_PAD.decode(parts[1])
+        .map_err(DecodeError::InvalidBase64Encoding)?;
+
+
+    let text = String::from_utf8(bytes)
+        .map_err(DecodeError::InvalidUnicodeEncoding)?;
+
+    decode_payload_text(&text)
 }
 
 fn decode_payload_text(text: &str) -> Result<()> {
-    match serde_json::from_str::<serde_json::Value>(text) {
-        Ok(value) => {
-            print_all_claims(&value)
-        },
-        Err(err) => {
-            Err(DecodeError::InvalidJson(err))  
-        }
-    }
+    let json = serde_json::from_str::<serde_json::Value>(text)
+        .map_err(DecodeError::InvalidJson)?;
+
+    let claims = json.as_object()
+        .ok_or(DecodeError::NotJsonObject)?;
+
+    print_all_claims(claims);
+    Ok(())
 }
 
-fn print_all_claims(json: &serde_json::Value) -> Result<()> {
-    if let Some(claims) = json.as_object() {
-        for (key, value) in claims {
-            println!("{}: {}", key, value)
-        }
-        Ok(())
-    } else {
-        Err(DecodeError::NotJsonObject)
+fn print_all_claims(claims: &serde_json::Map<String, serde_json::Value>) {
+    for (key, value) in claims {
+        println!("{}: {}", key, value)
     }
 }

@@ -19,7 +19,7 @@ fn main() -> ExitCode {
     }
     
     match decode_jwt(&args[1]) {
-        Ok(()) => ExitCode::SUCCESS,
+        Ok(_) => ExitCode::SUCCESS,
         Err(err) => {
             let _ = writeln!(stderr(), "error: {}", err);
             ExitCode::FAILURE
