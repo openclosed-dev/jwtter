@@ -1,11 +1,7 @@
 {
   "name": "${localWorkspaceFolderBasename}",
-  "build": {
-    "dockerfile": "Dockerfile",
-    "args": {
-      "USERNAME": "${localEnv:USER}"
-    }
-  },
+  "dockerComposeFile": "compose.yaml",
+  "service": "devcontainer",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "features": {
   },
